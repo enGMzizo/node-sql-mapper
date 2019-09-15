@@ -1,0 +1,7 @@
+node_modules
+*.log
+*Thumbs.db
+*.DS_Store
+# S3 Static Files
+# vscode settings
+.vscode/settings.json

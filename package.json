@@ -1,0 +1,30 @@
+{
+  "name": "mysql-mapper",
+  "version": "1.0.0",
+  "description": "Mapper for mysql ",
+  "main": "index.js",
+  "scripts": {
+    "test": "jest --watchAll --detectOpenHandles"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/enGMzizo/mysql-mapper.git"
+  },
+  "keywords": [
+    "mysql",
+    "mapper",
+    "orm"
+  ],
+  "author": "Mahmoud Ezzat",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/enGMzizo/mysql-mapper/issues"
+  },
+  "homepage": "https://github.com/enGMzizo/mysql-mapper#readme",
+  "dependencies": {
+    "mysql": "^2.17.1"
+  },
+  "devDependencies": {
+    "jest": "^24.9.0"
+  }
+}
