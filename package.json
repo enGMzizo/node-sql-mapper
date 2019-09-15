@@ -1,5 +1,5 @@
 {
-  "name": "mysql-mapper",
+  "name": "sql-mapper",
   "version": "1.0.0",
   "description": "Mapper for mysql ",
   "main": "index.js",
@@ -8,7 +8,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/enGMzizo/mysql-mapper.git"
+    "url": "git+https://github.com/enGMzizo/sql-mapper.git"
   },
   "keywords": [
     "mysql",
@@ -18,9 +18,9 @@
   "author": "Mahmoud Ezzat",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/enGMzizo/mysql-mapper/issues"
+    "url": "https://github.com/enGMzizo/sql-mapper/issues"
   },
-  "homepage": "https://github.com/enGMzizo/mysql-mapper#readme",
+  "homepage": "https://github.com/enGMzizo/sql-mapper#readme",
   "dependencies": {
     "mysql": "^2.17.1"
   },
