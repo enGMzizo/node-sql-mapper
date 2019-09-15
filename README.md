@@ -1,3 +1,3 @@
-# mysql-mapper
+# sql-mapper
 
 npm install then npm test
