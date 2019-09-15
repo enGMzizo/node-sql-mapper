@@ -10,7 +10,7 @@ let mapping = {
 }
 let tableName = 'test_table'
 describe('Mapping insert to SQL', () => {
-  it('Should return insert statment', async () => {
+  it('Should return insert statment', () => {
     let data = {
       location: {
         y: 12.22,
@@ -28,7 +28,7 @@ describe('Mapping insert to SQL', () => {
       )}, \`name\` = 'Harry Potter'`
     )
   })
-  it('Should not allow null values', async () => {
+  it('Should not allow null values', () => {
     let data = {
       location: {
         y: 12.22,
@@ -44,7 +44,7 @@ describe('Mapping insert to SQL', () => {
       }),\`user_id\` = 123, \`create_time\` = ${escape(data.create_time)}`
     )
   })
-  it('Should not allow undefined', async () => {
+  it('Should not allow undefined', () => {
     let data = {
       location: {
         y: 12.22,
@@ -60,7 +60,7 @@ describe('Mapping insert to SQL', () => {
       }),\`user_id\` = 123, \`create_time\` = ${escape(data.create_time)}`
     )
   })
-  it('Should not use unexpected object', async () => {
+  it('Should not use unexpected object', () => {
     let data = {
       user_id: 123,
       name: { name: 'test' }
@@ -69,7 +69,7 @@ describe('Mapping insert to SQL', () => {
       `INSERT INTO test_table SET \`user_id\` = 123`
     )
   })
-  it('Should use expected datatype', async () => {
+  it('Should use expected datatype', () => {
     let data = {
       user_id: new Number(123),
       name: new String('test')
@@ -78,7 +78,7 @@ describe('Mapping insert to SQL', () => {
       `INSERT INTO test_table SET \`user_id\` = '123', \`name\` = 'test'`
     )
   })
-  it('Should drop unexpected datatype', async () => {
+  it('Should drop unexpected datatype', () => {
     let data = {
       phone: '123',
       password: '123'
@@ -87,7 +87,7 @@ describe('Mapping insert to SQL', () => {
       `INSERT INTO test_table SET \`password\` = '123'`
     )
   })
-  it('Should throw error', async () => {
+  it('Should throw error', () => {
     let data
     expect(fns.insert.bind(null, { data, mapping, tableName })).toThrowError(
       'Unexpected data value null or undefined'
