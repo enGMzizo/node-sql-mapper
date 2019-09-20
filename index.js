@@ -50,6 +50,8 @@ function update({ where, data, mapping, tableName }) {
 
 function remove({ where, mapping, tableName }) {
   checkWhereInput({ where, mapping, tableName })
+  const { whereItems, whereSQL } = extractWhere({ where, mapping })
+  return `${mysql.format(`DELETE FROM ${tableName} ${whereSQL}`, whereItems)}`
 }
 
 module.exports = {

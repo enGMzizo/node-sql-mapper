@@ -207,3 +207,24 @@ describe('Mapping update to SQL', () => {
     }).toThrowError('Invalid value phone : null in where object')
   })
 })
+
+describe('Mapping delete to SQL', () => {
+  it('Should return delete statment', () => {
+    let where = {
+      user_id: 123,
+      phone: 123456
+    }
+    expect(fns.delete({ where, mapping, tableName })).toBe(
+      `DELETE FROM test_table WHERE \`user_id\` = 123 AND \`phone\` = 123456`
+    )
+  })
+  it('Should throw error if where has wrong values', () => {
+    let where = {
+      user_id: 123,
+      phone: null
+    }
+    expect(() => {
+      fns.delete({ where, mapping, tableName })
+    }).toThrowError('Invalid value phone : null in where object')
+  })
+})
