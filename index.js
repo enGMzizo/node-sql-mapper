@@ -18,45 +18,124 @@ const mysql = require('mysql')
   tableName = 'test_name'
 
  */
+
+function insert({ data, mapping, tableName, action = 'INSERT' }) {
+  checkInsertInput({ data, mapping, tableName })
+  const { points, polygons, item } = extractData({ data, mapping })
+  return `${mysql.format(
+    `${action} INTO ${tableName} SET ${joinObjectsToSQL({
+      points,
+      polygons
+    })}?`,
+    item
+  )}`
+}
+
+function replace(params) {
+  return insert({ ...params, action: 'REPLACE' })
+}
+
+function update({ where, data, mapping, tableName }) {
+  checkUpdateInput({ where, data, mapping, tableName })
+  const { whereItems, whereSQL } = extractWhere({ where, mapping })
+  console.log(whereItems, whereSQL)
+  const { points, polygons, item } = extractData({ data, mapping })
+  return `${mysql.format(
+    `UPDATE ${tableName} SET ${joinObjectsToSQL({
+      points,
+      polygons
+    })}? ${whereSQL}`,
+    [].concat(item, whereItems)
+  )}`
+}
+
+function remove({ where, mapping, tableName }) {
+  checkWhereInput({ where, mapping, tableName })
+}
+
 module.exports = {
-  insert: ({ data, mapping, tableName }) => {
-    checkInsertInput({ data, mapping, tableName })
-    const points = []
-    const polygons = []
-    const item = Object.entries(data).reduce((o, [nm, val]) => {
-      if (mapping[nm] !== undefined && val !== undefined && val !== null) {
-        switch (mapping[nm]) {
-          case 'string':
-            if (typeof val === 'string' || val instanceof String) {
-              o[nm] = formatString(val.toString())
-            }
-            break
-          case 'number':
-            if (typeof val === 'number' || val instanceof Number) {
-              o[nm] = val
-            }
-            break
-          case 'datetime':
-            if (typeof val === 'string' || val instanceof Date) {
-              o[nm] = val
-            }
-            break
-          case 'point':
-            points.push(
-              extractPoint({ name: nm, value: val, wrapper: pointWrapper })
-            )
-            break
-          case 'polygon':
-            polygons.push(extractPolygon({ name: nm, value: val }))
-            break
-        }
+  insert,
+  replace,
+  update,
+  delete: remove,
+  remove
+}
+
+function extractWhere({ where, mapping }) {
+  const whereItems = Object.entries(where).reduce((o, [nm, val]) => {
+    if (mapping[nm] !== undefined && val !== undefined && val !== null) {
+      switch (mapping[nm]) {
+        case 'string':
+          if (typeof val === 'string' || val instanceof String) {
+            o.push({
+              [nm]: formatString(val.toString())
+            })
+          }
+          break
+        case 'number':
+          if (typeof val === 'number' || val instanceof Number) {
+            o.push({
+              [nm]: val
+            })
+          }
+          break
+        case 'datetime':
+          if (typeof val === 'string' || val instanceof Date) {
+            o.push({
+              [nm]: val
+            })
+          }
+          break
       }
-      return o
-    }, {})
-    return `${mysql.format(
-      `INSERT INTO ${tableName} SET ${joinObjectsToSQL({ points, polygons })}?`,
-      item
-    )}`
+    }
+    return o
+  }, [])
+  return {
+    whereItems,
+    whereSQL:
+      whereItems && whereItems.length > 0
+        ? `WHERE ${whereItems.map(() => '?').join(' AND ')}`
+        : ''
+  }
+}
+
+function extractData({ data, mapping }) {
+  const points = []
+  const polygons = []
+  const item = Object.entries(data).reduce((o, [nm, val]) => {
+    if (mapping[nm] !== undefined && val !== undefined && val !== null) {
+      switch (mapping[nm]) {
+        case 'string':
+          if (typeof val === 'string' || val instanceof String) {
+            o[nm] = formatString(val.toString())
+          }
+          break
+        case 'number':
+          if (typeof val === 'number' || val instanceof Number) {
+            o[nm] = val
+          }
+          break
+        case 'datetime':
+          if (typeof val === 'string' || val instanceof Date) {
+            o[nm] = val
+          }
+          break
+        case 'point':
+          points.push(
+            extractPoint({ name: nm, value: val, wrapper: pointWrapper })
+          )
+          break
+        case 'polygon':
+          polygons.push(extractPolygon({ name: nm, value: val }))
+          break
+      }
+    }
+    return o
+  }, {})
+  return {
+    item,
+    points,
+    polygons
   }
 }
 
@@ -138,6 +217,33 @@ function addSlashes(str) {
 function checkInsertInput({ data, mapping, tableName }) {
   if (data === null || data === undefined) {
     throw new Error('Unexpected data value null or undefined')
+  }
+  if (mapping === null || mapping === undefined) {
+    throw new Error('Unexpected mapping value null or undefined')
+  }
+  if (tableName === null || tableName === undefined) {
+    throw new Error('Unexpected tableName value null or undefined')
+  }
+}
+//helper to throw error if input is null
+function checkUpdateInput({ where, data, mapping, tableName }) {
+  if (where === null || where === undefined) {
+    throw new Error('Unexpected where value null or undefined')
+  }
+  if (data === null || data === undefined) {
+    throw new Error('Unexpected data value null or undefined')
+  }
+  if (mapping === null || mapping === undefined) {
+    throw new Error('Unexpected mapping value null or undefined')
+  }
+  if (tableName === null || tableName === undefined) {
+    throw new Error('Unexpected tableName value null or undefined')
+  }
+}
+//helper to throw error if input is null on where
+function checkWhereInput({ where, mapping, tableName }) {
+  if (where === null || where === undefined) {
+    throw new Error('Unexpected where value null or undefined')
   }
   if (mapping === null || mapping === undefined) {
     throw new Error('Unexpected mapping value null or undefined')

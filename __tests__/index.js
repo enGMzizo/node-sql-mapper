@@ -148,3 +148,51 @@ describe('Mapping insert to SQL', () => {
     }).toThrowError('Invalid X value of borders[1]: Hello')
   })
 })
+describe('Mapping replace to SQL', () => {
+  it('Should return replace statment', () => {
+    let data = {
+      location: {
+        y: 12.22,
+        x: 12.33
+      },
+      user_id: 123,
+      create_time: new Date(),
+      name: 'Harry Potter'
+    }
+    expect(fns.replace({ data, mapping, tableName })).toBe(
+      `REPLACE INTO test_table SET location = POINT(${data.location.x},${
+        data.location.y
+      }),\`user_id\` = 123, \`create_time\` = ${escape(
+        data.create_time
+      )}, \`name\` = 'Harry Potter'`
+    )
+  })
+})
+
+describe('Mapping update to SQL', () => {
+  it('Should return update statment', () => {
+    let where = {
+      user_id: 123,
+      phone: 123456
+    }
+    let data = {
+      name: 'Harry Potter'
+    }
+    expect(fns.update({ where, data, mapping, tableName })).toBe(
+      `UPDATE test_table SET \`name\` = 'Harry Potter' WHERE \`user_id\` = 123 AND \`phone\` = 123456`
+    )
+  })
+  it('Should ignore the undefined and null values', () => {
+    let where = {
+      user_id: 123,
+      phone: null
+    }
+    let data = {
+      name: 'Harry Potter',
+      phone: undefined
+    }
+    expect(fns.update({ where, data, mapping, tableName })).toBe(
+      `UPDATE test_table SET \`name\` = 'Harry Potter' WHERE \`user_id\` = 123`
+    )
+  })
+})
