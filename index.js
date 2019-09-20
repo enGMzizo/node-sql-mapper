@@ -54,12 +54,26 @@ function remove({ where, mapping, tableName }) {
   return `${mysql.format(`DELETE FROM ${tableName} ${whereSQL}`, whereItems)}`
 }
 
+function get({ select, where, mapping, tableName }) {
+  checkWhereInput({ where, mapping, tableName })
+  const { whereItems, whereSQL } = extractWhere({ where, mapping })
+
+  return `${mysql.format(
+    `SELECT ${extractSelect({
+      select,
+      mapping
+    })} FROM ${tableName} ${whereSQL}`,
+    whereItems
+  )}`
+}
+
 module.exports = {
   insert,
   replace,
   update,
   delete: remove,
-  remove
+  remove,
+  get: get
 }
 
 function extractWhere({ where, mapping }) {
@@ -102,6 +116,17 @@ function extractWhere({ where, mapping }) {
         ? `WHERE ${whereItems.map(() => '?').join(' AND ')}`
         : ''
   }
+}
+
+function extractSelect({ select, mapping }) {
+  if (select === undefined || select === null || !Array.isArray(select)) {
+    return '*'
+  }
+  const selection = select.filter((name) => mapping[name] !== undefined)
+  if (selection.length === 0) {
+    return '*'
+  }
+  return mysql.format(`${selection.map(() => `?`).join(', ')}`, selection)
 }
 
 function extractData({ data, mapping }) {

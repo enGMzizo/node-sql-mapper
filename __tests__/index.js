@@ -228,3 +228,34 @@ describe('Mapping delete to SQL', () => {
     }).toThrowError('Invalid value phone : null in where object')
   })
 })
+
+describe('Mapping get to SQL', () => {
+  it('Should return get statment', () => {
+    let select = ['user_id', 'borders', 'ignored']
+    let where = {
+      user_id: 123,
+      phone: 123456
+    }
+    expect(fns.get({ select, where, mapping, tableName })).toBe(
+      `SELECT 'user_id', 'borders' FROM test_table WHERE \`user_id\` = 123 AND \`phone\` = 123456`
+    )
+  })
+  it('Should select all values', () => {
+    let where = {
+      user_id: 123,
+      phone: 123456
+    }
+    expect(fns.get({ where, mapping, tableName })).toBe(
+      `SELECT * FROM test_table WHERE \`user_id\` = 123 AND \`phone\` = 123456`
+    )
+  })
+  // it('Should throw error if where has wrong values', () => {
+  //   let where = {
+  //     user_id: 123,
+  //     phone: null
+  //   }
+  //   expect(() => {
+  //     fns.delete({ where, mapping, tableName })
+  //   }).toThrowError('Invalid value phone : null in where object')
+  // })
+})
