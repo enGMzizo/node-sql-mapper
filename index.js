@@ -63,6 +63,14 @@ function extractPoint({ name, value }) {
     return ''
   }
   if (value.x !== undefined && value.y !== undefined) {
+    const x = parseFloat(value.x)
+    if (isNaN(x)) {
+      throw new Error(`Invalid X value of ${name}: ${value.x}`)
+    }
+    const y = parseFloat(value.y)
+    if (isNaN(y)) {
+      throw new Error(`Invalid Y value of ${name}: ${value.y}`)
+    }
     return `${name} = POINT(${value.x},${value.y}),`
   }
   return ''

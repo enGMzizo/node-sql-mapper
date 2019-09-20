@@ -89,8 +89,22 @@ describe('Mapping insert to SQL', () => {
   })
   it('Should throw error', () => {
     let data
-    expect(fns.insert.bind(null, { data, mapping, tableName })).toThrowError(
-      'Unexpected data value null or undefined'
-    )
+    expect(() => {
+      fns.insert({ data, mapping, tableName })
+    }).toThrowError('Unexpected data value null or undefined')
+  })
+  it('Should not allow location.x if x is not number', () => {
+    let data = {
+      location: {
+        y: 12.22,
+        x: 'Hello'
+      },
+      user_id: 123,
+      create_time: new Date(),
+      name: undefined
+    }
+    expect(() => {
+      fns.insert({ data, mapping, tableName })
+    }).toThrowError('Invalid X value of location: Hello')
   })
 })
