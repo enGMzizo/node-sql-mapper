@@ -12,7 +12,8 @@ const mysql = require('mysql')
     user_id: 'number' || Number,
     create_time: 'datetime' || Date,
     name: 'string' || String,
-    location: 'point' //  x , y for geolocation lng , lat
+    location: 'point' //  x , y for geolocation lng , lat,
+    borders: 'polygon'
   }
   tableName = 'test_name'
 
@@ -21,6 +22,7 @@ module.exports = {
   insert: ({ data, mapping, tableName }) => {
     checkInsertInput({ data, mapping, tableName })
     const points = []
+    const polygons = []
     const item = Object.entries(data).reduce((o, [nm, val]) => {
       if (mapping[nm] !== undefined && val !== undefined && val !== null) {
         switch (mapping[nm]) {
@@ -40,25 +42,37 @@ module.exports = {
             }
             break
           case 'point':
-            points.push(extractPoint({ name: nm, value: val }))
+            points.push(
+              extractPoint({ name: nm, value: val, wrapper: pointWrapper })
+            )
+            break
+          case 'polygon':
+            polygons.push(extractPolygon({ name: nm, value: val }))
             break
         }
       }
       return o
     }, {})
     return `${mysql.format(
-      `INSERT INTO ${tableName} SET ${makePoitsSQL(points)}?`,
+      `INSERT INTO ${tableName} SET ${joinObjectsToSQL({ points, polygons })}?`,
       item
     )}`
   }
 }
 
-function makePoitsSQL(points) {
-  return points ? `${points.join(',')}` : ''
+function joinObjectsToSQL({ points, polygons }) {
+  const sqlArr = []
+  if (points.length > 0) {
+    sqlArr.push(points.join(','))
+  }
+  if (polygons.length > 0) {
+    sqlArr.push(polygons.join(','))
+  }
+  return sqlArr.join(',')
 }
 
 //helper function for location
-function extractPoint({ name, value }) {
+function extractPoint({ name, value, wrapper }) {
   if (value === undefined || value === null) {
     return ''
   }
@@ -71,9 +85,36 @@ function extractPoint({ name, value }) {
     if (isNaN(y)) {
       throw new Error(`Invalid Y value of ${name}: ${value.y}`)
     }
-    return `${name} = POINT(${value.x},${value.y}),`
+    return wrapper({ name, x, y })
   }
   return ''
+}
+
+function pointWrapper({ name, x, y }) {
+  return `${name} = POINT(${x},${y}),`
+}
+
+function ploygonPointWrapper({ x, y }) {
+  return `${x}  ${y}`
+}
+
+function extractPolygon({ name, value }) {
+  // value is [{lat,lng},....]
+  if (value === undefined || value === null) {
+    return ''
+  }
+
+  if (!Array.isArray(value)) {
+    throw new Error(`Invalid Ploygon value of ${name}`)
+  }
+  const points = value.map((value, i) =>
+    extractPoint({
+      name: `${name}[${i}]`,
+      value,
+      wrapper: ploygonPointWrapper
+    })
+  )
+  return `${name} = ST_GeomFromText('POLYGON(${points.join(',')})'),`
 }
 
 // helper function for string

@@ -6,7 +6,8 @@ let mapping = {
   name: 'string',
   password: 'string',
   phone: 'number',
-  location: 'point'
+  location: 'point',
+  borders: 'polygon'
 }
 let tableName = 'test_table'
 describe('Mapping insert to SQL', () => {
@@ -93,18 +94,57 @@ describe('Mapping insert to SQL', () => {
       fns.insert({ data, mapping, tableName })
     }).toThrowError('Unexpected data value null or undefined')
   })
-  it('Should not allow location.x if x is not number', () => {
+  it('Should allow polygons', () => {
     let data = {
-      location: {
-        y: 12.22,
-        x: 'Hello'
-      },
+      borders: [
+        {
+          y: 12.22,
+          x: 12.33
+        },
+        {
+          y: 13.22,
+          x: 13.33
+        }
+      ],
+      user_id: 123,
+      create_time: new Date(),
+      name: undefined
+    }
+    expect(fns.insert({ data, mapping, tableName })).toBe(
+      `INSERT INTO test_table SET borders = ST_GeomFromText('POLYGON(12.33  12.22,13.33  13.22)'),\`user_id\` = 123, \`create_time\` = ${escape(
+        data.create_time
+      )}`
+    )
+  })
+  it('Should throw error because polygon is not array', () => {
+    let data = {
+      borders: 'String',
       user_id: 123,
       create_time: new Date(),
       name: undefined
     }
     expect(() => {
       fns.insert({ data, mapping, tableName })
-    }).toThrowError('Invalid X value of location: Hello')
+    }).toThrowError('Invalid Ploygon value of borders')
+  })
+  it('Should throw error because polygon is not array', () => {
+    let data = {
+      borders: [
+        {
+          y: 12.22,
+          x: 12.33
+        },
+        {
+          y: 13.22,
+          x: 'Hello'
+        }
+      ],
+      user_id: 123,
+      create_time: new Date(),
+      name: undefined
+    }
+    expect(() => {
+      fns.insert({ data, mapping, tableName })
+    }).toThrowError('Invalid X value of borders[1]: Hello')
   })
 })
