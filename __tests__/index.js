@@ -182,10 +182,9 @@ describe('Mapping update to SQL', () => {
       `UPDATE test_table SET \`name\` = 'Harry Potter' WHERE \`user_id\` = 123 AND \`phone\` = 123456`
     )
   })
-  it('Should ignore the undefined and null values', () => {
+  it('Should ignore the undefined and null values in data', () => {
     let where = {
-      user_id: 123,
-      phone: null
+      user_id: 123
     }
     let data = {
       name: 'Harry Potter',
@@ -194,5 +193,17 @@ describe('Mapping update to SQL', () => {
     expect(fns.update({ where, data, mapping, tableName })).toBe(
       `UPDATE test_table SET \`name\` = 'Harry Potter' WHERE \`user_id\` = 123`
     )
+  })
+  it('Should throw error if where has wrong values', () => {
+    let where = {
+      user_id: 123,
+      phone: null
+    }
+    let data = {
+      name: 'Harry Potter'
+    }
+    expect(() => {
+      fns.update({ where, data, mapping, tableName })
+    }).toThrowError('Invalid value phone : null in where object')
   })
 })

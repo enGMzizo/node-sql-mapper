@@ -38,7 +38,6 @@ function replace(params) {
 function update({ where, data, mapping, tableName }) {
   checkUpdateInput({ where, data, mapping, tableName })
   const { whereItems, whereSQL } = extractWhere({ where, mapping })
-  console.log(whereItems, whereSQL)
   const { points, polygons, item } = extractData({ data, mapping })
   return `${mysql.format(
     `UPDATE ${tableName} SET ${joinObjectsToSQL({
@@ -86,14 +85,18 @@ function extractWhere({ where, mapping }) {
             })
           }
           break
+        default:
+          throw new Error(`Invalid value ${[nm]} : ${val} in where object`)
       }
+    } else {
+      throw new Error(`Invalid value ${[nm]} : ${val} in where object`)
     }
     return o
   }, [])
   return {
     whereItems,
     whereSQL:
-      whereItems && whereItems.length > 0
+      whereItems.length > 0
         ? `WHERE ${whereItems.map(() => '?').join(' AND ')}`
         : ''
   }
