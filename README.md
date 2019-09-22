@@ -48,7 +48,7 @@ const sql = fns.insert({ data, mapping, tableName })
 ### Example for update
 
 ```js
-letconst fns = require('node-sql-mapper')
+const fns = require('node-sql-mapper')
 let mapping = {
   user_id: 'number',
   create_time: 'datetime',
@@ -63,7 +63,7 @@ let data = {
   name: 'Harry Potter'
 }
 let where = {
-    user_id: 123
+  user_id: 123
 }
 const sql = fns.update({ where, data, mapping, tableName })
 // sql will be "UPDATE test_table SET `name` = 'Harry Potter' WHERE `user_id` = 123"
@@ -72,7 +72,7 @@ const sql = fns.update({ where, data, mapping, tableName })
 ### Example for delete
 
 ```js
-letconst fns = require('node-sql-mapper')
+const fns = require('node-sql-mapper')
 let mapping = {
   user_id: 'number',
   create_time: 'datetime',
@@ -84,7 +84,7 @@ let mapping = {
 }
 let tableName = 'test_table'
 let where = {
-    user_id: 123
+  user_id: 123
 }
 const sql = fns.delete({ where, mapping, tableName })
 // sql will be "DELETE FROM test_table WHERE `user_id` = 123"
@@ -93,7 +93,7 @@ const sql = fns.delete({ where, mapping, tableName })
 ### Example for get
 
 ```js
-letconst fns = require('node-sql-mapper')
+const fns = require('node-sql-mapper')
 let mapping = {
   user_id: 'number',
   create_time: 'datetime',
