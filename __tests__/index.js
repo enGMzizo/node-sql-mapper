@@ -249,6 +249,12 @@ describe('Mapping get to SQL', () => {
       `SELECT * FROM test_table WHERE \`user_id\` = 123 AND \`phone\` = 123456`
     )
   })
+  it('Should return selection without where statment', () => {
+    let select = ['user_id', 'borders', 'ignored']
+    expect(fns.get({ select, mapping, tableName })).toBe(
+      `SELECT 'user_id', 'borders' FROM test_table`
+    )
+  })
   // it('Should throw error if where has wrong values', () => {
   //   let where = {
   //     user_id: 123,

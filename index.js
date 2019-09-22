@@ -55,9 +55,15 @@ function remove({ where, mapping, tableName }) {
 }
 
 function get({ select, where, mapping, tableName }) {
-  checkWhereInput({ where, mapping, tableName })
-  const { whereItems, whereSQL } = extractWhere({ where, mapping })
+  checkMappingInput({ mapping, tableName })
+  if (where === undefined || where === null || Object.keys(where) === 0) {
+    return `SELECT ${extractSelect({
+      select,
+      mapping
+    })} FROM ${tableName}`
+  }
 
+  const { whereItems, whereSQL } = extractWhere({ where, mapping })
   return `${mysql.format(
     `SELECT ${extractSelect({
       select,
@@ -257,24 +263,19 @@ function checkInsertInput({ data, mapping, tableName }) {
 }
 //helper to throw error if input is null
 function checkUpdateInput({ where, data, mapping, tableName }) {
-  if (where === null || where === undefined) {
-    throw new Error('Unexpected where value null or undefined')
-  }
   if (data === null || data === undefined) {
     throw new Error('Unexpected data value null or undefined')
   }
-  if (mapping === null || mapping === undefined) {
-    throw new Error('Unexpected mapping value null or undefined')
-  }
-  if (tableName === null || tableName === undefined) {
-    throw new Error('Unexpected tableName value null or undefined')
-  }
+  checkWhereInput({ where, mapping, tableName })
 }
 //helper to throw error if input is null on where
 function checkWhereInput({ where, mapping, tableName }) {
   if (where === null || where === undefined) {
     throw new Error('Unexpected where value null or undefined')
   }
+  checkMappingInput({ mapping, tableName })
+}
+function checkMappingInput({ mapping, tableName }) {
   if (mapping === null || mapping === undefined) {
     throw new Error('Unexpected mapping value null or undefined')
   }
