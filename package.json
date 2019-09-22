@@ -1,6 +1,6 @@
 {
   "name": "node-sql-mapper",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Mapper for mysql node ",
   "main": "index.js",
   "scripts": {
