@@ -237,7 +237,7 @@ describe('Mapping get to SQL', () => {
       phone: 123456
     }
     expect(fns.get({ select, where, mapping, tableName })).toBe(
-      `SELECT 'user_id', 'borders' FROM test_table WHERE \`user_id\` = 123 AND \`phone\` = 123456`
+      `SELECT \`user_id\`, \`borders\` FROM test_table WHERE \`user_id\` = 123 AND \`phone\` = 123456`
     )
   })
   it('Should select all values', () => {
@@ -252,7 +252,7 @@ describe('Mapping get to SQL', () => {
   it('Should return selection without where statment', () => {
     let select = ['user_id', 'borders', 'ignored']
     expect(fns.get({ select, mapping, tableName })).toBe(
-      `SELECT 'user_id', 'borders' FROM test_table`
+      `SELECT \`user_id\`, \`borders\` FROM test_table`
     )
   })
   // it('Should throw error if where has wrong values', () => {

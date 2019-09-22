@@ -132,7 +132,7 @@ function extractSelect({ select, mapping }) {
   if (selection.length === 0) {
     return '*'
   }
-  return mysql.format(`${selection.map(() => `?`).join(', ')}`, selection)
+  return mysql.format(`${selection.map(() => `??`).join(', ')}`, selection)
 }
 
 function extractData({ data, mapping }) {
