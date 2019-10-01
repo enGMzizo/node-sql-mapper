@@ -1,5 +1,9 @@
 # sql-mapper
 
+### How to install
+
+`npm i node-sql-mapper`
+
 ### Allowed Mapping Types
 
 - `number` : Float , Int ,... etc
