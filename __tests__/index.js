@@ -255,13 +255,42 @@ describe('Mapping get to SQL', () => {
       `SELECT \`user_id\`, \`borders\` FROM test_table`
     )
   })
-  // it('Should throw error if where has wrong values', () => {
+})
+
+describe('Mapping advanced WHERE to SQL', () => {
+  it('Should return query statment', () => {
+    let select = ['user_id', 'borders', 'ignored']
+    let where = {
+      and: {
+        user_id: {
+          '>': 1,
+          '<=': 5
+        },
+        phone: {
+          in: [123, 321]
+        }
+      },
+      or: {
+        password: '123456'
+      }
+    }
+    expect(fns.query({ select, where, mapping, tableName })).toBe(
+      `SELECT \`user_id\`, \`borders\` FROM test_table WHERE \`user_id\` > 1 AND \`user_id\` <= 5 AND \`phone\` IN(123,321) OR \`password\` = '123456'`
+    )
+  })
+  // it('Should select all values', () => {
   //   let where = {
   //     user_id: 123,
-  //     phone: null
+  //     phone: 123456
   //   }
-  //   expect(() => {
-  //     fns.delete({ where, mapping, tableName })
-  //   }).toThrowError('Invalid value phone : null in where object')
+  //   expect(fns.get({ where, mapping, tableName })).toBe(
+  //     `SELECT * FROM test_table WHERE \`user_id\` = 123 AND \`phone\` = 123456`
+  //   )
+  // })
+  // it('Should return selection without where statment', () => {
+  //   let select = ['user_id', 'borders', 'ignored']
+  //   expect(fns.get({ select, mapping, tableName })).toBe(
+  //     `SELECT \`user_id\`, \`borders\` FROM test_table`
+  //   )
   // })
 })

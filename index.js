@@ -1,3 +1,4 @@
+'use strict'
 const mysql = require('mysql')
 
 /*
@@ -56,21 +57,30 @@ function remove({ where, mapping, tableName }) {
 
 function get({ select, where, mapping, tableName }) {
   checkMappingInput({ mapping, tableName })
+  checkMappingInput({ mapping, tableName })
+  const sql = `SELECT ${extractSelect({
+    select,
+    mapping
+  })} FROM ${tableName}`
   if (where === undefined || where === null || Object.keys(where) === 0) {
-    return `SELECT ${extractSelect({
-      select,
-      mapping
-    })} FROM ${tableName}`
+    return sql
   }
 
   const { whereItems, whereSQL } = extractWhere({ where, mapping })
-  return `${mysql.format(
-    `SELECT ${extractSelect({
-      select,
-      mapping
-    })} FROM ${tableName} ${whereSQL}`,
-    whereItems
-  )}`
+  return `${mysql.format(`${sql} ${whereSQL}`, whereItems)}`
+}
+
+function query({ select, where, mapping, tableName }) {
+  checkMappingInput({ mapping, tableName })
+  const sql = `SELECT ${extractSelect({
+    select,
+    mapping
+  })} FROM ${tableName}`
+
+  if (where === undefined || where === null || Object.keys(where) === 0) {
+    return sql
+  }
+  return `${sql} ${advancedWhere({ where, mapping })}`
 }
 
 module.exports = {
@@ -79,7 +89,8 @@ module.exports = {
   update,
   delete: remove,
   remove,
-  get: get
+  get: get,
+  query
 }
 
 function extractWhere({ where, mapping }) {
@@ -124,6 +135,138 @@ function extractWhere({ where, mapping }) {
   }
 }
 
+function advancedWhere({ where, mapping }) {
+  const noAnd =
+    where.and === undefined ||
+    where.and === null ||
+    Object.keys(where.and) === 0
+  const noOr =
+    where.or === undefined || where.or === null || Object.keys(where.or) === 0
+
+  if (noAnd && noOr) {
+    throw new Error(`'and' value or 'or' value required`)
+  }
+  let andSql = '',
+    orSql = ''
+  if (!noAnd) {
+    andSql = getValues({ where: where.and, mapping }).join(' AND ')
+  }
+  if (!noOr) {
+    orSql = `${!noAnd ? ' OR ' : ''}${getValues({
+      where: where.or,
+      mapping
+    }).join(' OR ')}`
+  }
+
+  const whereSQL = andSql + orSql
+  return whereSQL ? `WHERE ${whereSQL}` : ''
+}
+
+function isObject(val) {
+  return val instanceof String ||
+    val instanceof Number ||
+    val instanceof Date ||
+    typeof val === 'number' ||
+    typeof val === 'string'
+    ? false
+    : true
+}
+
+function extractValue({ val, name, mapping }) {
+  return Object.entries(val).reduce((o, [key, value]) => {
+    console.log(key, value)
+    switch (key) {
+      case '>':
+        o.push(
+          mysql.format(`?? > ?`, [name, matchMapping({ value, name, mapping })])
+        )
+        break
+      case '<':
+        o.push(
+          mysql.format(`?? < ?`, [name, matchMapping({ value, name, mapping })])
+        )
+        break
+      case '>=':
+        o.push(
+          mysql.format(`?? >= ?`, [
+            name,
+            matchMapping({ value, name, mapping })
+          ])
+        )
+        break
+      case '<=':
+        o.push(
+          mysql.format(`?? <= ?`, [
+            name,
+            matchMapping({ value, name, mapping })
+          ])
+        )
+        break
+      case 'in':
+      case 'not in': {
+        if (!Array.isArray(value)) {
+          throw new Error(`Invalid value ${[name]} : ${value} in where object`)
+        }
+        const values = value.filter((v) =>
+          matchMapping({ value: v, name, mapping })
+        )
+        o.push(
+          mysql.format(
+            `?? ${key.toUpperCase()}(${values.map(() => '?').join(',')})`,
+            [name].concat(values)
+          )
+        )
+        break
+      }
+
+      default:
+        break
+    }
+    return o
+  }, [])
+}
+
+function getValues({ where, mapping }) {
+  return Object.entries(where).reduce((o, [nm, val]) => {
+    if (mapping[nm] !== undefined && val !== undefined && val !== null) {
+      if (isObject(val)) {
+        return o.concat(extractValue({ val, name: nm, mapping }))
+      }
+      return o.concat(
+        mysql.format(`?? = ?`, [
+          nm,
+          matchMapping({ value: val, name: nm, mapping })
+        ])
+      )
+    }
+    return o
+  }, [])
+}
+
+function matchMapping({ value, name, mapping }) {
+  if (mapping[name] !== undefined && value !== undefined && value !== null) {
+    switch (mapping[name]) {
+      case 'string':
+        if (typeof value === 'string' || value instanceof String) {
+          return value
+        }
+        break
+      case 'number':
+        if (typeof value === 'number' || value instanceof Number) {
+          return value
+        }
+        break
+      case 'datetime':
+        if (typeof value === 'string' || value instanceof Date) {
+          return value
+        }
+        break
+      default:
+        throw new Error(`Invalid value ${[name]} : ${value} in where object`)
+    }
+  }
+  throw new Error(`Invalid value ${[name]} : ${value} in where object`)
+}
 function extractSelect({ select, mapping }) {
   if (select === undefined || select === null || !Array.isArray(select)) {
     return '*'
@@ -244,8 +387,8 @@ function nl2nl(str) {
 function addSlashes(str) {
   return str
     .replace(/\\/g, '\\\\')
-    .replace(/\'/g, "\\'")
-    .replace(/\"/g, '\\"')
+    .replace(/'/g, "\\'")
+    .replace(/"/g, '\\"')
     .replace(/\0/g, '\\0')
 }
 
