@@ -49,10 +49,27 @@ function update({ where, data, mapping, tableName }) {
   )}`
 }
 
+function advancedUpdate({ where, data, mapping, tableName }) {
+  checkUpdateInput({ where, data, mapping, tableName })
+  const { points, polygons, item } = extractData({ data, mapping })
+  return `${mysql.format(
+    `UPDATE ${tableName} SET ${joinObjectsToSQL({
+      points,
+      polygons
+    })}? ${advancedWhere({ where, mapping })}`,
+    item
+  )}`
+}
+
 function remove({ where, mapping, tableName }) {
   checkWhereInput({ where, mapping, tableName })
   const { whereItems, whereSQL } = extractWhere({ where, mapping })
   return `${mysql.format(`DELETE FROM ${tableName} ${whereSQL}`, whereItems)}`
+}
+
+function advancedRemove({ where, mapping, tableName }) {
+  checkWhereInput({ where, mapping, tableName })
+  return `DELETE FROM ${tableName} ${advancedWhere({ where, mapping })}`
 }
 
 function get({ select, where, mapping, tableName }) {
@@ -87,7 +104,10 @@ module.exports = {
   insert,
   replace,
   update,
+  advancedUpdate,
   delete: remove,
+  advancedRemove,
+  advancedDelete: advancedRemove,
   remove,
   get: get,
   query
@@ -174,7 +194,6 @@ function isObject(val) {
 
 function extractValue({ val, name, mapping }) {
   return Object.entries(val).reduce((o, [key, value]) => {
-    console.log(key, value)
     switch (key) {
       case '>':
         o.push(

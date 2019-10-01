@@ -206,6 +206,29 @@ describe('Mapping update to SQL', () => {
       fns.update({ where, data, mapping, tableName })
     }).toThrowError('Invalid value phone : null in where object')
   })
+  it('Should return advanced update statment', () => {
+    let where = {
+      and: {
+        user_id: {
+          '>': 123,
+          '<': 1000
+        },
+        phone: 123456,
+        create_time: {
+          'not in': [new Date()]
+        }
+      }
+    }
+
+    let data = {
+      name: 'Harry Potter'
+    }
+    expect(fns.advancedUpdate({ where, data, mapping, tableName })).toBe(
+      `UPDATE test_table SET \`name\` = 'Harry Potter' WHERE \`user_id\` > 123 AND \`user_id\` < 1000 AND \`phone\` = 123456 AND \`create_time\` NOT IN(${escape(
+        where.and.create_time['not in'][0]
+      )})`
+    )
+  })
 })
 
 describe('Mapping delete to SQL', () => {
@@ -226,6 +249,26 @@ describe('Mapping delete to SQL', () => {
     expect(() => {
       fns.delete({ where, mapping, tableName })
     }).toThrowError('Invalid value phone : null in where object')
+  })
+  it('Should return advanced delete statment', () => {
+    let where = {
+      and: {
+        user_id: {
+          '>': 123,
+          '<': 1000
+        },
+        phone: 123456,
+        create_time: {
+          'not in': [new Date()]
+        }
+      }
+    }
+
+    expect(fns.advancedDelete({ where, mapping, tableName })).toBe(
+      `DELETE FROM test_table WHERE \`user_id\` > 123 AND \`user_id\` < 1000 AND \`phone\` = 123456 AND \`create_time\` NOT IN(${escape(
+        where.and.create_time['not in'][0]
+      )})`
+    )
   })
 })
 
@@ -278,19 +321,4 @@ describe('Mapping advanced WHERE to SQL', () => {
       `SELECT \`user_id\`, \`borders\` FROM test_table WHERE \`user_id\` > 1 AND \`user_id\` <= 5 AND \`phone\` IN(123,321) OR \`password\` = '123456'`
     )
   })
-  // it('Should select all values', () => {
-  //   let where = {
-  //     user_id: 123,
-  //     phone: 123456
-  //   }
-  //   expect(fns.get({ where, mapping, tableName })).toBe(
-  //     `SELECT * FROM test_table WHERE \`user_id\` = 123 AND \`phone\` = 123456`
-  //   )
-  // })
-  // it('Should return selection without where statment', () => {
-  //   let select = ['user_id', 'borders', 'ignored']
-  //   expect(fns.get({ select, mapping, tableName })).toBe(
-  //     `SELECT \`user_id\`, \`borders\` FROM test_table`
-  //   )
-  // })
 })
