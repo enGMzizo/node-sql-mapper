@@ -298,6 +298,24 @@ describe('Mapping get to SQL', () => {
       `SELECT \`user_id\`, \`borders\` FROM test_table  LIMIT 0, 50`
     )
   })
+  it('Should change the offset and limit default values with ignoring the order thing ', () => {
+    let select = ['user_id', 'borders', 'ignored']
+    expect(fns.get({ select, mapping, tableName, offset: 20, limit: 10})).toBe(
+      `SELECT \`user_id\`, \`borders\` FROM test_table  LIMIT 20, 10`
+    )
+  })
+  it('Should change the orderBy and order default values ', () => {
+    let select = ['user_id', 'borders', 'ignored']
+    expect(fns.get({ select, mapping, tableName, orderBy:'user_id', order:'DESC'})).toBe(
+      `SELECT \`user_id\`, \`borders\` FROM test_table ORDER BY \`user_id\` DESC LIMIT 0, 50`
+    )
+  })
+  it('Should change the both orders and limits default values ', () => {
+    let select = ['user_id', 'borders', 'ignored']
+    expect(fns.get({ select, mapping, tableName, orderBy:'user_id', order:'ASC', offset: 15, limit:5})).toBe(
+      `SELECT \`user_id\`, \`borders\` FROM test_table ORDER BY \`user_id\` ASC LIMIT 15, 5`
+    )
+  })
 })
 
 describe('Mapping advanced WHERE to SQL', () => {

@@ -274,7 +274,7 @@ function extractOrder({ orderBy, order }) {
   if (order === undefined || order === null) {
     order = 'DESC';
   }
-  return mysql.format(`ORDER BY ? ?`, [orderBy, order]);
+  return mysql.format(`ORDER BY ?? `, [orderBy])+order;
 }
 
 function extractLimit({offset, limit}){
@@ -474,7 +474,7 @@ function checkOrderInput({ orderBy, order, offset, limit}) {
   if (orderBy !== null && orderBy !== undefined && typeof orderBy !== 'string') {
     throw new Error('Unexpected orderBy value, has to be string or empty')
   }
-  if (order !== null && order !== undefined && ( order.toUpperCase() !== 'DESC' || order.toUpperCase() !== 'ASC') ) {
+  if (order !== null && order !== undefined && ( order.toUpperCase() !== 'DESC' && order.toUpperCase() !== 'ASC') ) {
     throw new Error('Unexpected order value, has to be string (ASC, DESC) or empty')
   }
   checkLimitOffesetInput({offset, limit});
