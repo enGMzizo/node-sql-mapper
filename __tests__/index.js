@@ -280,7 +280,7 @@ describe('Mapping get to SQL', () => {
       phone: 123456
     }
     expect(fns.get({ select, where, mapping, tableName })).toBe(
-      `SELECT \`user_id\`, \`borders\` FROM test_table WHERE \`user_id\` = 123 AND \`phone\` = 123456`
+      `SELECT \`user_id\`, \`borders\` FROM test_table WHERE \`user_id\` = 123 AND \`phone\` = 123456  LIMIT 0, 50`
     )
   })
   it('Should select all values', () => {
@@ -289,13 +289,13 @@ describe('Mapping get to SQL', () => {
       phone: 123456
     }
     expect(fns.get({ where, mapping, tableName })).toBe(
-      `SELECT * FROM test_table WHERE \`user_id\` = 123 AND \`phone\` = 123456`
+      `SELECT * FROM test_table WHERE \`user_id\` = 123 AND \`phone\` = 123456  LIMIT 0, 50`
     )
   })
   it('Should return selection without where statment', () => {
     let select = ['user_id', 'borders', 'ignored']
     expect(fns.get({ select, mapping, tableName })).toBe(
-      `SELECT \`user_id\`, \`borders\` FROM test_table`
+      `SELECT \`user_id\`, \`borders\` FROM test_table  LIMIT 0, 50`
     )
   })
 })
@@ -318,7 +318,7 @@ describe('Mapping advanced WHERE to SQL', () => {
       }
     }
     expect(fns.query({ select, where, mapping, tableName })).toBe(
-      `SELECT \`user_id\`, \`borders\` FROM test_table WHERE \`user_id\` > 1 AND \`user_id\` <= 5 AND \`phone\` IN(123,321) OR \`password\` = '123456'`
+      `SELECT \`user_id\`, \`borders\` FROM test_table WHERE \`user_id\` > 1 AND \`user_id\` <= 5 AND \`phone\` IN(123,321) OR \`password\` = '123456'  LIMIT 0, 50`
     )
   })
 })
