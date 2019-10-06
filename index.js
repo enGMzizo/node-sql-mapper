@@ -72,32 +72,37 @@ function advancedRemove({ where, mapping, tableName }) {
   return `DELETE FROM ${tableName} ${advancedWhere({ where, mapping })}`
 }
 
-function get({ select, where, mapping, tableName }) {
+function get({ select, where, mapping, tableName, orderBy, order, offset,  limit}) {
   checkMappingInput({ mapping, tableName })
-  checkMappingInput({ mapping, tableName })
+  checkOrderInput({ orderBy, order, offset, limit})
+  const orderSQL = extractOrder({ orderBy, order });
+  const limitSQL = extractLimit({ offset, limit });
   const sql = `SELECT ${extractSelect({
     select,
     mapping
   })} FROM ${tableName}`
   if (where === undefined || where === null || Object.keys(where) === 0) {
-    return sql
+    return sql + ` ${orderSQL} ${limitSQL}`;
   }
 
   const { whereItems, whereSQL } = extractWhere({ where, mapping })
-  return `${mysql.format(`${sql} ${whereSQL}`, whereItems)}`
+
+  return `${mysql.format(`${sql} ${whereSQL} ${orderSQL} ${limitSQL}`, whereItems)}`
 }
 
-function query({ select, where, mapping, tableName }) {
+function query({ select, where, mapping, tableName, orderBy, order, offset, limit }) {
   checkMappingInput({ mapping, tableName })
+  checkOrderInput({ orderBy, order, offset, limit })
   const sql = `SELECT ${extractSelect({
     select,
     mapping
   })} FROM ${tableName}`
-
+  const orderSQL = extractOrder({ orderBy, order });
+  const limitSQL = extractLimit({ offset, limit });
   if (where === undefined || where === null || Object.keys(where) === 0) {
-    return sql
+    return sql + ` ${orderSQL} ${limitSQL}`
   }
-  return `${sql} ${advancedWhere({ where, mapping })}`
+  return `${sql} ${advancedWhere({ where, mapping })} ${orderSQL} ${limitSQL}`
 }
 
 module.exports = {
@@ -260,6 +265,25 @@ function getValues({ where, mapping }) {
     }
     return o
   }, [])
+}
+
+function extractOrder({ orderBy, order }) {
+  if (orderBy === undefined || orderBy === null) {
+    return '';
+  }
+  if (order === undefined || order === null) {
+    order = 'DESC';
+  }
+  return mysql.format(`ORDER BY ?? `, [orderBy])+order;
+}
+
+function extractLimit({offset, limit}){
+  if( offset === undefined || offset === null)
+    offset = 0;
+  if( limit === undefined || limit === null)
+    limit = 50;
+  return `LIMIT ${offset}, ${limit}`;
+  
 }
 
 function matchMapping({ value, name, mapping }) {
@@ -443,5 +467,24 @@ function checkMappingInput({ mapping, tableName }) {
   }
   if (tableName === null || tableName === undefined) {
     throw new Error('Unexpected tableName value null or undefined')
+  }
+}
+//helper to throw error if limit and offset whether they are not undefined, null nor number
+function checkOrderInput({ orderBy, order, offset, limit}) {
+  if (orderBy !== null && orderBy !== undefined && typeof orderBy !== 'string') {
+    throw new Error('Unexpected orderBy value, has to be string or empty')
+  }
+  if (order !== null && order !== undefined && ( order.toUpperCase() !== 'DESC' && order.toUpperCase() !== 'ASC') ) {
+    throw new Error('Unexpected order value, has to be string (ASC, DESC) or empty')
+  }
+  checkLimitOffesetInput({offset, limit});
+
+}
+function checkLimitOffesetInput({offset, limit}){
+  if (limit !== null && limit !== undefined && typeof limit !== 'number') {
+    throw new Error('Unexpected limit value has to be number or empty')
+  }
+  if (offset !== null && offset !== undefined && typeof offset !== 'number') {
+    throw new Error('Unexpected offset value has to be number or empty')
   }
 }
