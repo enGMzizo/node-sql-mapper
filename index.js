@@ -72,9 +72,9 @@ function advancedRemove({ where, mapping, tableName }) {
   return `DELETE FROM ${tableName} ${advancedWhere({ where, mapping })}`
 }
 
-function get({ select, where, mapping, tableName, orderBy, order, offset,  limit}) {
+function get({ select, where, mapping, tableName, orderBy, order, offset, limit }) {
   checkMappingInput({ mapping, tableName })
-  checkOrderInput({ orderBy, order, offset, limit})
+  checkOrderInput({ orderBy, order, offset, limit })
   const orderSQL = extractOrder({ orderBy, order });
   const limitSQL = extractLimit({ offset, limit });
   const sql = `SELECT ${extractSelect({
@@ -274,16 +274,16 @@ function extractOrder({ orderBy, order }) {
   if (order === undefined || order === null) {
     order = 'DESC';
   }
-  return mysql.format(`ORDER BY ?? `, [orderBy])+order;
+  return mysql.format(`ORDER BY ?? `, [orderBy]) + order;
 }
 
-function extractLimit({offset, limit}){
-  if( offset === undefined || offset === null)
+function extractLimit({ offset, limit }) {
+  if (offset === undefined || offset === null)
     offset = 0;
-  if( limit === undefined || limit === null)
+  if (limit === undefined || limit === null)
     limit = 50;
   return `LIMIT ${offset}, ${limit}`;
-  
+
 }
 
 function matchMapping({ value, name, mapping }) {
@@ -470,17 +470,17 @@ function checkMappingInput({ mapping, tableName }) {
   }
 }
 //helper to throw error if limit and offset whether they are not undefined, null nor number
-function checkOrderInput({ orderBy, order, offset, limit}) {
+function checkOrderInput({ orderBy, order, offset, limit }) {
   if (orderBy !== null && orderBy !== undefined && typeof orderBy !== 'string') {
     throw new Error('Unexpected orderBy value, has to be string or empty')
   }
-  if (order !== null && order !== undefined && ( order.toUpperCase() !== 'DESC' && order.toUpperCase() !== 'ASC') ) {
+  if (order !== null && order !== undefined && (order.toUpperCase() !== 'DESC' && order.toUpperCase() !== 'ASC')) {
     throw new Error('Unexpected order value, has to be string (ASC, DESC) or empty')
   }
-  checkLimitOffesetInput({offset, limit});
+  checkLimitOffesetInput({ offset, limit });
 
 }
-function checkLimitOffesetInput({offset, limit}){
+function checkLimitOffesetInput({ offset, limit }) {
   if (limit !== null && limit !== undefined && typeof limit !== 'number') {
     throw new Error('Unexpected limit value has to be number or empty')
   }
