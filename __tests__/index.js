@@ -23,7 +23,7 @@ describe('Mapping insert to SQL', () => {
     }
     expect(fns.insert({ data, mapping, tableName })).toBe(
       `INSERT INTO test_table SET location = POINT(${data.location.x},${
-        data.location.y
+      data.location.y
       }),\`user_id\` = 123, \`create_time\` = ${escape(
         data.create_time
       )}, \`name\` = 'Harry Potter'`
@@ -41,7 +41,7 @@ describe('Mapping insert to SQL', () => {
     }
     expect(fns.insert({ data, mapping, tableName })).toBe(
       `INSERT INTO test_table SET location = POINT(${data.location.x},${
-        data.location.y
+      data.location.y
       }),\`user_id\` = 123, \`create_time\` = ${escape(data.create_time)}`
     )
   })
@@ -57,7 +57,7 @@ describe('Mapping insert to SQL', () => {
     }
     expect(fns.insert({ data, mapping, tableName })).toBe(
       `INSERT INTO test_table SET location = POINT(${data.location.x},${
-        data.location.y
+      data.location.y
       }),\`user_id\` = 123, \`create_time\` = ${escape(data.create_time)}`
     )
   })
@@ -161,7 +161,7 @@ describe('Mapping replace to SQL', () => {
     }
     expect(fns.replace({ data, mapping, tableName })).toBe(
       `REPLACE INTO test_table SET location = POINT(${data.location.x},${
-        data.location.y
+      data.location.y
       }),\`user_id\` = 123, \`create_time\` = ${escape(
         data.create_time
       )}, \`name\` = 'Harry Potter'`
@@ -280,7 +280,7 @@ describe('Mapping get to SQL', () => {
       phone: 123456
     }
     expect(fns.get({ select, where, mapping, tableName })).toBe(
-      `SELECT \`user_id\`, \`borders\` FROM test_table WHERE \`user_id\` = 123 AND \`phone\` = 123456  LIMIT 0, 50`
+      `SELECT \`user_id\`, \`borders\` FROM test_table WHERE \`user_id\` = 123 AND \`phone\` = 123456`
     )
   })
   it('Should select all values', () => {
@@ -289,30 +289,32 @@ describe('Mapping get to SQL', () => {
       phone: 123456
     }
     expect(fns.get({ where, mapping, tableName })).toBe(
-      `SELECT * FROM test_table WHERE \`user_id\` = 123 AND \`phone\` = 123456  LIMIT 0, 50`
+      `SELECT * FROM test_table WHERE \`user_id\` = 123 AND \`phone\` = 123456`
     )
   })
   it('Should return selection without where statment', () => {
     let select = ['user_id', 'borders', 'ignored']
     expect(fns.get({ select, mapping, tableName })).toBe(
-      `SELECT \`user_id\`, \`borders\` FROM test_table  LIMIT 0, 50`
+      `SELECT \`user_id\`, \`borders\` FROM test_table`
     )
   })
+
   it('Should change the offset and limit default values with ignoring the order thing ', () => {
     let select = ['user_id', 'borders', 'ignored']
-    expect(fns.get({ select, mapping, tableName, offset: 20, limit: 10})).toBe(
-      `SELECT \`user_id\`, \`borders\` FROM test_table  LIMIT 20, 10`
+    expect(fns.get({ select, mapping, tableName, offset: 20, limit: 10 })).toBe(
+      `SELECT \`user_id\`, \`borders\` FROM test_table LIMIT 20, 10`
     )
   })
+
   it('Should change the orderBy and order default values ', () => {
     let select = ['user_id', 'borders', 'ignored']
-    expect(fns.get({ select, mapping, tableName, orderBy:'user_id', order:'DESC'})).toBe(
-      `SELECT \`user_id\`, \`borders\` FROM test_table ORDER BY \`user_id\` DESC LIMIT 0, 50`
+    expect(fns.get({ select, mapping, tableName, orderBy: 'user_id', order: 'DESC' })).toBe(
+      `SELECT \`user_id\`, \`borders\` FROM test_table ORDER BY \`user_id\` DESC`
     )
   })
   it('Should change the both orders and limits default values ', () => {
     let select = ['user_id', 'borders', 'ignored']
-    expect(fns.get({ select, mapping, tableName, orderBy:'user_id', order:'ASC', offset: 15, limit:5})).toBe(
+    expect(fns.get({ select, mapping, tableName, orderBy: 'user_id', order: 'ASC', offset: 15, limit: 5 })).toBe(
       `SELECT \`user_id\`, \`borders\` FROM test_table ORDER BY \`user_id\` ASC LIMIT 15, 5`
     )
   })
@@ -336,7 +338,7 @@ describe('Mapping advanced WHERE to SQL', () => {
       }
     }
     expect(fns.query({ select, where, mapping, tableName })).toBe(
-      `SELECT \`user_id\`, \`borders\` FROM test_table WHERE \`user_id\` > 1 AND \`user_id\` <= 5 AND \`phone\` IN(123,321) OR \`password\` = '123456'  LIMIT 0, 50`
+      `SELECT \`user_id\`, \`borders\` FROM test_table WHERE \`user_id\` > 1 AND \`user_id\` <= 5 AND \`phone\` IN(123,321) OR \`password\` = '123456'`
     )
   })
 })

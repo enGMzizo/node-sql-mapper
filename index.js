@@ -82,12 +82,12 @@ function get({ select, where, mapping, tableName, orderBy, order, offset, limit 
     mapping
   })} FROM ${tableName}`
   if (where === undefined || where === null || Object.keys(where) === 0) {
-    return sql + ` ${orderSQL} ${limitSQL}`;
+    return sql + `${orderSQL}${limitSQL}`;
   }
 
   const { whereItems, whereSQL } = extractWhere({ where, mapping })
 
-  return `${mysql.format(`${sql} ${whereSQL} ${orderSQL} ${limitSQL}`, whereItems)}`
+  return `${mysql.format(`${sql} ${whereSQL}${orderSQL}${limitSQL}`, whereItems)}`
 }
 
 function query({ select, where, mapping, tableName, orderBy, order, offset, limit }) {
@@ -100,9 +100,9 @@ function query({ select, where, mapping, tableName, orderBy, order, offset, limi
   const orderSQL = extractOrder({ orderBy, order });
   const limitSQL = extractLimit({ offset, limit });
   if (where === undefined || where === null || Object.keys(where) === 0) {
-    return sql + ` ${orderSQL} ${limitSQL}`
+    return sql + ` ${orderSQL}${limitSQL}`
   }
-  return `${sql} ${advancedWhere({ where, mapping })} ${orderSQL} ${limitSQL}`
+  return `${sql} ${advancedWhere({ where, mapping })}${orderSQL}${limitSQL}`
 }
 
 module.exports = {
@@ -274,15 +274,16 @@ function extractOrder({ orderBy, order }) {
   if (order === undefined || order === null) {
     order = 'DESC';
   }
-  return mysql.format(`ORDER BY ?? `, [orderBy]) + order;
+  return mysql.format(` ORDER BY ?? `, [orderBy]) + order;
 }
 
 function extractLimit({ offset, limit }) {
-  if (offset === undefined || offset === null)
-    offset = 0;
-  if (limit === undefined || limit === null)
-    limit = 50;
-  return `LIMIT ${offset}, ${limit}`;
+  const parsedOffset = parseInt(offset, 10)
+  const parsedLimit = parseInt(limit, 10)
+  if (isNaN(parsedOffset) || isNaN(parsedLimit)) {
+    return ''
+  }
+  return ` LIMIT ${parsedOffset}, ${parsedLimit}`;
 
 }
 
