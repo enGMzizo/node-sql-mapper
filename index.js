@@ -72,11 +72,12 @@ function advancedRemove({ where, mapping, tableName }) {
   return `DELETE FROM ${tableName} ${advancedWhere({ where, mapping })}`
 }
 
-function get({ select, where, mapping, tableName, orderBy, order, offset, limit }) {
+function get({ select, where, mapping, tableName, order, offset }) {
   checkMappingInput({ mapping, tableName })
-  checkOrderInput({ orderBy, order, offset, limit })
-  const orderSQL = extractOrder({ orderBy, order });
-  const limitSQL = extractLimit({ offset, limit });
+  checkOrderInput({ order })
+  checkLimitOffesetInput({ offset })
+  const orderSQL = extractOrder({ order });
+  const limitSQL = extractLimit({ offset });
   const sql = `SELECT ${extractSelect({
     select,
     mapping
@@ -90,15 +91,17 @@ function get({ select, where, mapping, tableName, orderBy, order, offset, limit 
   return `${mysql.format(`${sql} ${whereSQL}${orderSQL}${limitSQL}`, whereItems)}`
 }
 
-function query({ select, where, mapping, tableName, orderBy, order, offset, limit }) {
+function query({ select, where, mapping, tableName, order, offset }) {
   checkMappingInput({ mapping, tableName })
-  checkOrderInput({ orderBy, order, offset, limit })
+  checkOrderInput({ order })
+  checkLimitOffesetInput({ offset })
+
   const sql = `SELECT ${extractSelect({
     select,
     mapping
   })} FROM ${tableName}`
-  const orderSQL = extractOrder({ orderBy, order });
-  const limitSQL = extractLimit({ offset, limit });
+  const orderSQL = extractOrder({ order });
+  const limitSQL = extractLimit({ offset });
   if (where === undefined || where === null || Object.keys(where) === 0) {
     return sql + ` ${orderSQL}${limitSQL}`
   }
@@ -267,23 +270,33 @@ function getValues({ where, mapping }) {
   }, [])
 }
 
-function extractOrder({ orderBy, order }) {
-  if (orderBy === undefined || orderBy === null) {
+function extractOrder({ order }) {
+  if (order === undefined || order === null) {
     return '';
   }
-  if (order === undefined || order === null) {
-    order = 'DESC';
+  let str = ''
+  const { by, sort } = order
+  if (by === undefined || by === null) {
+    return '';
   }
-  return mysql.format(` ORDER BY ?? `, [orderBy]) + order;
+  str += mysql.format(` ORDER BY ?? `, [by])
+  if (sort === undefined || sort === null) {
+    return str
+  }
+  return str + sort;
 }
 
-function extractLimit({ offset, limit }) {
-  const parsedOffset = parseInt(offset, 10)
-  const parsedLimit = parseInt(limit, 10)
-  if (isNaN(parsedOffset) || isNaN(parsedLimit)) {
+function extractLimit({ offset }) {
+  if (offset === null || offset === undefined || !Array.isArray(offset) || offset.length !== 2) {
     return ''
   }
-  return ` LIMIT ${parsedOffset}, ${parsedLimit}`;
+  const [index, limit] = offset
+  const parsedIndex = parseInt(index, 10)
+  const parsedLimit = parseInt(limit, 10)
+  if (isNaN(parsedIndex) || isNaN(parsedLimit)) {
+    return ''
+  }
+  return ` LIMIT ${parsedIndex}, ${parsedLimit}`;
 
 }
 
@@ -311,6 +324,7 @@ function matchMapping({ value, name, mapping }) {
   }
   throw new Error(`Invalid value ${[name]} : ${value} in where object`)
 }
+
 function extractSelect({ select, mapping }) {
   if (select === undefined || select === null || !Array.isArray(select)) {
     return '*'
@@ -448,6 +462,7 @@ function checkInsertInput({ data, mapping, tableName }) {
     throw new Error('Unexpected tableName value null or undefined')
   }
 }
+
 //helper to throw error if input is null
 function checkUpdateInput({ where, data, mapping, tableName }) {
   if (data === null || data === undefined) {
@@ -455,6 +470,7 @@ function checkUpdateInput({ where, data, mapping, tableName }) {
   }
   checkWhereInput({ where, mapping, tableName })
 }
+
 //helper to throw error if input is null on where
 function checkWhereInput({ where, mapping, tableName }) {
   if (where === null || where === undefined) {
@@ -462,6 +478,7 @@ function checkWhereInput({ where, mapping, tableName }) {
   }
   checkMappingInput({ mapping, tableName })
 }
+
 function checkMappingInput({ mapping, tableName }) {
   if (mapping === null || mapping === undefined) {
     throw new Error('Unexpected mapping value null or undefined')
@@ -470,22 +487,36 @@ function checkMappingInput({ mapping, tableName }) {
     throw new Error('Unexpected tableName value null or undefined')
   }
 }
+
 //helper to throw error if limit and offset whether they are not undefined, null nor number
-function checkOrderInput({ orderBy, order, offset, limit }) {
-  if (orderBy !== null && orderBy !== undefined && typeof orderBy !== 'string') {
-    throw new Error('Unexpected orderBy value, has to be string or empty')
+function checkOrderInput({ order }) {
+  if (order !== null && order !== undefined && typeof order !== 'object') {
+    const { by, sort } = order
+    if (by !== null && by !== undefined && typeof by !== 'string') {
+      throw new Error('Unexpected orderBy value, has to be string or empty')
+    }
+    if (sort !== null && sort !== undefined && (sort.toUpperCase() !== 'DESC' && sort.toUpperCase() !== 'ASC')) {
+      throw new Error('Unexpected order value, has to be string (ASC, DESC) or empty')
+    }
   }
-  if (order !== null && order !== undefined && (order.toUpperCase() !== 'DESC' && order.toUpperCase() !== 'ASC')) {
-    throw new Error('Unexpected order value, has to be string (ASC, DESC) or empty')
-  }
-  checkLimitOffesetInput({ offset, limit });
 
 }
-function checkLimitOffesetInput({ offset, limit }) {
-  if (limit !== null && limit !== undefined && typeof limit !== 'number') {
-    throw new Error('Unexpected limit value has to be number or empty')
-  }
-  if (offset !== null && offset !== undefined && typeof offset !== 'number') {
-    throw new Error('Unexpected offset value has to be number or empty')
+
+function checkLimitOffesetInput({ offset }) {
+  if (offset !== null && offset !== undefined) {
+    if (!Array.isArray(offset)) {
+      throw new Error('Unexpected offset value has to be an array')
+    }
+    if (offset.length !== 2) {
+      throw new Error('Unexpected offset value has to be an array of [index,limit]')
+    }
+    const [index, limit] = offset
+    if (index !== null && index !== undefined && typeof index !== 'number') {
+      throw new Error('Unexpected index value has to be number')
+    }
+
+    if (limit !== null && limit !== undefined && typeof limit !== 'number') {
+      throw new Error('Unexpected limit value has to be number')
+    }
   }
 }

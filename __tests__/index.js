@@ -301,22 +301,36 @@ describe('Mapping get to SQL', () => {
 
   it('Should change the offset and limit default values with ignoring the order thing ', () => {
     let select = ['user_id', 'borders', 'ignored']
-    expect(fns.get({ select, mapping, tableName, offset: 20, limit: 10 })).toBe(
+    expect(fns.get({ select, mapping, tableName, offset: [20, 10] })).toBe(
       `SELECT \`user_id\`, \`borders\` FROM test_table LIMIT 20, 10`
     )
   })
 
   it('Should change the orderBy and order default values ', () => {
     let select = ['user_id', 'borders', 'ignored']
-    expect(fns.get({ select, mapping, tableName, orderBy: 'user_id', order: 'DESC' })).toBe(
+    expect(fns.get({ select, mapping, tableName, order: { by: 'user_id', sort: 'DESC' } })).toBe(
       `SELECT \`user_id\`, \`borders\` FROM test_table ORDER BY \`user_id\` DESC`
     )
   })
   it('Should change the both orders and limits default values ', () => {
     let select = ['user_id', 'borders', 'ignored']
-    expect(fns.get({ select, mapping, tableName, orderBy: 'user_id', order: 'ASC', offset: 15, limit: 5 })).toBe(
+    expect(fns.get({ select, mapping, tableName, order: { by: 'user_id', sort: 'ASC' }, offset: [15, 5] })).toBe(
       `SELECT \`user_id\`, \`borders\` FROM test_table ORDER BY \`user_id\` ASC LIMIT 15, 5`
     )
+  })
+
+  it('Should Throw an error offset not array', () => {
+    let select = ['user_id', 'borders', 'ignored']
+    expect(() => {
+      fns.get({ select, mapping, tableName, offset: 1 })
+    }).toThrowError('Unexpected offset value has to be an array')
+  })
+
+  it('Should Throw an error offset length', () => {
+    let select = ['user_id', 'borders', 'ignored']
+    expect(() => {
+      fns.get({ select, mapping, tableName, offset: [] })
+    }).toThrowError('Unexpected offset value has to be an array of [index,limit]')
   })
 })
 
