@@ -356,3 +356,59 @@ describe('Mapping advanced WHERE to SQL', () => {
     )
   })
 })
+
+
+describe('Mapping advanced WHERE to SQL and count', () => {
+  it('Should return query statment with count', () => {
+    let select = ['user_id', 'borders', 'ignored']
+    let where = {
+      and: {
+        user_id: {
+          '>': 1,
+          '<=': 5
+        },
+        phone: {
+          in: [123, 321]
+        }
+      },
+      or: {
+        password: '123456'
+      }
+    }
+    expect(fns.query({ select, where, mapping, tableName, count: 'c' })).toBe(
+      `SELECT \`user_id\`, \`borders\` FROM test_table WHERE \`user_id\` > 1 AND \`user_id\` <= 5 AND \`phone\` IN(123,321) OR \`password\` = '123456';SELECT COUNT(*) AS \`c\` FROM test_table WHERE \`user_id\` > 1 AND \`user_id\` <= 5 AND \`phone\` IN(123,321) OR \`password\` = '123456'`
+    )
+  })
+
+  it('Should return count statment only', () => {
+    let where = {
+      and: {
+        user_id: {
+          '>': 1,
+          '<=': 5
+        },
+        phone: {
+          in: [123, 321]
+        }
+      },
+      or: {
+        password: '123456'
+      }
+    }
+    expect(fns.count({ as :'c', where, mapping, tableName })).toBe(
+      `SELECT COUNT(*) AS \`c\` FROM test_table WHERE \`user_id\` > 1 AND \`user_id\` <= 5 AND \`phone\` IN(123,321) OR \`password\` = '123456'`
+    )
+  })
+  it('Should Throw an error count', () => {
+    let select = ['user_id', 'borders', 'ignored']
+    expect(() => {
+      fns.query({ select, mapping, tableName, count:' ' })
+    }).toThrowError('Unexpected count value')
+  })
+  it('Should Throw an error count', () => {
+    let select = ['user_id', 'borders', 'ignored']
+    expect(() => {
+      fns.query({ select, mapping, tableName, count: 1 })
+    }).toThrowError('Unexpected count value has to be string')
+  })
+})

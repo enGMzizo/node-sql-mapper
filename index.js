@@ -91,10 +91,11 @@ function get({ select, where, mapping, tableName, order, offset }) {
   return `${mysql.format(`${sql} ${whereSQL}${orderSQL}${limitSQL}`, whereItems)}`
 }
 
-function query({ select, where, mapping, tableName, order, offset }) {
+function query({ select, where, mapping, tableName, order, offset, count }) {
   checkMappingInput({ mapping, tableName })
   checkOrderInput({ order })
   checkLimitOffesetInput({ offset })
+  checkCountInput({ count })
 
   const sql = `SELECT ${extractSelect({
     select,
@@ -102,10 +103,24 @@ function query({ select, where, mapping, tableName, order, offset }) {
   })} FROM ${tableName}`
   const orderSQL = extractOrder({ order });
   const limitSQL = extractLimit({ offset });
+  const countSQL = extractCount({ count, tableName })
   if (where === undefined || where === null || Object.keys(where) === 0) {
-    return sql + ` ${orderSQL}${limitSQL}`
+    return sql + ` ${orderSQL}${limitSQL}${countSQL ? ';' + countSQL : ''}`
   }
-  return `${sql} ${advancedWhere({ where, mapping })}${orderSQL}${limitSQL}`
+  const whereSQL = advancedWhere({ where, mapping })
+  return `${sql} ${whereSQL}${orderSQL}${limitSQL}${countSQL ? ';' + countSQL + whereSQL : ''}`
+}
+
+function _count({ as, where, mapping, tableName }) {
+  checkMappingInput({ mapping, tableName })
+  checkCountInput({ count: as })
+
+  const sql = extractCount({ count: as, tableName })
+  if (where === undefined || where === null || Object.keys(where) === 0) {
+    return sql
+  }
+  const whereSQL = advancedWhere({ where, mapping })
+  return `${sql}${whereSQL}`
 }
 
 module.exports = {
@@ -118,7 +133,8 @@ module.exports = {
   advancedDelete: advancedRemove,
   remove,
   get: get,
-  query
+  query,
+  count: _count
 }
 
 function extractWhere({ where, mapping }) {
@@ -298,6 +314,14 @@ function extractLimit({ offset }) {
   }
   return ` LIMIT ${parsedIndex}, ${parsedLimit}`;
 
+}
+
+function extractCount({ count, tableName }) {
+  if (count === null || count === undefined) {
+    return ''
+  }
+
+  return mysql.format(`SELECT COUNT(*) AS ?? FROM ${tableName} `, [count]);
 }
 
 function matchMapping({ value, name, mapping }) {
@@ -517,6 +541,17 @@ function checkLimitOffesetInput({ offset }) {
 
     if (limit !== null && limit !== undefined && typeof limit !== 'number') {
       throw new Error('Unexpected limit value has to be number')
+    }
+  }
+}
+
+function checkCountInput({ count }) {
+  if (count !== null && count !== undefined) {
+    if (typeof count !== 'string' && !(count instanceof String)) {
+      throw new Error('Unexpected count value has to be string')
+    }
+    if (count.trim().length === 0) {
+      throw new Error('Unexpected count value')
     }
   }
 }
