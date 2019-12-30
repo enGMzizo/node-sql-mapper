@@ -36,7 +36,7 @@ function replace(params) {
   return insert({ ...params, action: 'REPLACE' })
 }
 
-function update({ where, data, mapping, tableName }) {
+function update({ where = {}, data, mapping, tableName }) {
   checkUpdateInput({ where, data, mapping, tableName })
   const { whereItems, whereSQL } = extractWhere({ where, mapping })
   const { points, polygons, item } = extractData({ data, mapping })
@@ -49,7 +49,7 @@ function update({ where, data, mapping, tableName }) {
   )}`
 }
 
-function advancedUpdate({ where, data, mapping, tableName }) {
+function advancedUpdate({ where = {}, data, mapping, tableName }) {
   checkUpdateInput({ where, data, mapping, tableName })
   const { points, polygons, item } = extractData({ data, mapping })
   return `${mysql.format(
@@ -61,13 +61,13 @@ function advancedUpdate({ where, data, mapping, tableName }) {
   )}`
 }
 
-function remove({ where, mapping, tableName }) {
+function remove({ where = {}, mapping, tableName }) {
   checkWhereInput({ where, mapping, tableName })
   const { whereItems, whereSQL } = extractWhere({ where, mapping })
   return `${mysql.format(`DELETE FROM ${tableName} ${whereSQL}`, whereItems)}`
 }
 
-function advancedRemove({ where, mapping, tableName }) {
+function advancedRemove({ where = {}, mapping, tableName }) {
   checkWhereInput({ where, mapping, tableName })
   return `DELETE FROM ${tableName} ${advancedWhere({ where, mapping })}`
 }
@@ -91,7 +91,7 @@ function get({ select, where, mapping, tableName, order, offset }) {
   return `${mysql.format(`${sql} ${whereSQL}${orderSQL}${limitSQL}`, whereItems)}`
 }
 
-function query({ select, where, mapping, tableName, order, offset, count }) {
+function query({ select, where = {}, mapping, tableName, order, offset, count }) {
   checkMappingInput({ mapping, tableName })
   checkOrderInput({ order })
   checkLimitOffesetInput({ offset })
@@ -111,7 +111,7 @@ function query({ select, where, mapping, tableName, order, offset, count }) {
   return `${sql} ${whereSQL}${orderSQL}${limitSQL}${countSQL ? ';' + countSQL + whereSQL : ''}`
 }
 
-function _count({ as, where, mapping, tableName }) {
+function _count({ as, where = {}, mapping, tableName }) {
   checkMappingInput({ mapping, tableName })
   checkCountInput({ count: as })
 
