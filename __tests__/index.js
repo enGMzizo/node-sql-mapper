@@ -241,6 +241,11 @@ describe('Mapping delete to SQL', () => {
       `DELETE FROM test_table WHERE \`user_id\` = 123 AND \`phone\` = 123456`
     )
   })
+  it('Should allow null where to delete all', () => {
+    expect(fns.delete({ mapping, tableName })).toBe(
+      `DELETE FROM ${tableName} `
+    )
+  })
   it('Should throw error if where has wrong values', () => {
     let where = {
       user_id: 123,
