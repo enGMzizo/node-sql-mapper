@@ -180,6 +180,7 @@ function extractWhere({ where, mapping }) {
 }
 
 function advancedWhere({ where, mapping }) {
+  if (Object.keys(where).length === 0) return '';
   const noAnd =
     where.and === undefined ||
     where.and === null ||
